@@ -1,0 +1,95 @@
+That’s an *excellent* mindset, — communicating technical logic clearly is just as important as writing it efficiently.
+
+Since you’re working on an **AI decision-making system for a deterministic game (The Same Game)** using **graph search**, **heuristics**, and **NumPy**, here’s a breakdown of the key **vocabulary and terminology** you should know and use to explain your approach accurately and confidently to your teammates.
+
+---
+
+## 🧩 Core AI Decision-Making Terms
+
+| **Term**                        | **Definition / Usage**                                                                                                       | **Example in Context**                                                                             |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **Game State**                  | A snapshot of the entire game configuration at a given time. In your case, this is the NumPy board and current score.        | “Each node in our decision graph represents a game state — the current board layout and score.”    |
+| **Action / Move**               | A valid operation that transforms one game state into another.                                                               | “Each move corresponds to removing a connected group of tiles.”                                    |
+| **Successor State**             | The resulting state after performing an action on the current state.                                                         | “The `generate_successors()` function returns all possible successor states for the current node.” |
+| **State Transition**            | The mapping from one state to another caused by an action.                                                                   | “We model each transition as a directed edge in our decision graph.”                               |
+| **Search Tree / Decision Tree** | A tree or graph structure that represents all possible states reachable from a starting point through a sequence of actions. | “Our AI builds a decision tree rooted at the initial board, with edges representing valid moves.”  |
+| **Leaf Node**                   | A state that has no further possible moves (terminal state).                                                                 | “When no groups remain, the node becomes a leaf in the tree.”                                      |
+| **Path / Branch**               | A sequence of moves (edges) leading from the root to a given node.                                                           | “We can trace a path from the root to a leaf to represent one full game sequence.”                 |
+
+---
+
+## ⚙️ Algorithmic and Search Terms
+
+| **Term**                | **Definition / Usage**                                                                                                       | **Example**                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Heuristic Function**  | A function that estimates how good or promising a state is. Used to guide search instead of exploring all possibilities.     | “Our heuristic favors states with larger color clusters and fewer remaining colors.”    |
+| **Evaluation Function** | A general scoring function combining actual results and heuristic estimates (sometimes used interchangeably with heuristic). | “We combine the current score and heuristic estimate into an evaluation function.”      |
+| **Search Strategy**     | The method used to explore the decision tree (e.g., DFS, BFS, A*, Beam Search).                                              | “We’re using a beam search strategy to limit how many states we expand at once.”        |
+| **Beam Width**          | In beam search, the number of top states you keep at each depth based on heuristic ranking.                                  | “We set a beam width of 5 to keep our search computationally feasible.”                 |
+| **Pruning**             | Intentionally stopping exploration of less promising branches.                                                               | “We prune states with low heuristic scores to prevent the tree from growing too large.” |
+| **Backtracking**        | Returning to previous nodes after exploring a branch (typical in DFS or minimax).                                            | “Once we reach a dead-end, we backtrack and explore alternative moves.”                 |
+| **Deterministic**       | No randomness; the same action from the same state always yields the same result.                                            | “Same Game is deterministic — we can predict the exact outcome of each move.”           |
+
+---
+
+## 🧠 Heuristics and Optimization Terms
+
+| **Term**                           | **Definition / Usage**                                                                           | **Example**                                                                           |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| **Greedy Search**                  | Always chooses the most promising move based on the heuristic, without looking ahead.            | “A greedy search removes the largest group first every time.”                         |
+| **A* Search**                      | Combines actual cost (`g(n)`) and heuristic estimate (`h(n)`) to find an optimal path.           | “We could apply an A*-like approach where total score + heuristic drives the search.” |
+| **Monte Carlo Tree Search (MCTS)** | Simulates random plays from each state to estimate long-term potential.                          | “If we add randomness later, MCTS would be a scalable search method.”                 |
+| **Exploration vs. Exploitation**   | Balancing between trying new moves (exploration) and focusing on promising moves (exploitation). | “We keep a small random factor to maintain exploration.”                              |
+
+---
+
+## 🔢 Data Structure & Implementation Terms
+
+| **Term**                     | **Definition / Usage**                                                                         | **Example**                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Graph Node (Vertex)**      | Represents a single game state in the decision graph.                                          | “Each node in our NetworkX graph stores a GameState object.”                  |
+| **Edge**                     | A connection between two nodes, representing a move/action.                                    | “Edges carry metadata like the move and score gained.”                        |
+| **Directed Graph (DiGraph)** | A graph where edges have direction (A → B). Used here because moves flow one way through time. | “We use a directed graph in NetworkX since states only move forward.”         |
+| **Adjacency**                | The set of nodes directly reachable from a given node.                                         | “We query the adjacency list to get possible successors.”                     |
+| **Subarray**                 | A smaller portion of a NumPy array (view or copy).                                             | “We simulate only the subarray around the cluster to speed up group removal.” |
+| **Connected Component**      | A set of cells that are connected and share the same color.                                    | “Each removable cluster is a connected component in the grid.”                |
+
+---
+
+## 🧮 Numerical and Computational Concepts
+
+| **Term**                      | **Definition / Usage**                                                              | **Example**                                                                          |
+| ----------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **State Space**               | The total set of all possible unique game states.                                   | “The state space grows exponentially with the number of colors.”                     |
+| **Branching Factor**          | The average number of possible moves per state.                                     | “Reducing the branching factor through pruning improves performance.”                |
+| **Complexity (Time / Space)** | How resource usage scales with the size of the problem.                             | “Full search is exponential in time complexity — we use heuristics to control that.” |
+| **Memoization / Caching**     | Storing previously computed results (like evaluated states) to avoid recomputation. | “We can memoize heuristic results for repeated subboards.”                           |
+| **Hashing**                   | Generating a unique ID for a state, often via `hash(state.board.tobytes())`.        | “We hash board states to detect duplicates in the decision graph.”                   |
+
+---
+
+## 🧱 Game-Specific Terms (for Same Game)
+
+| **Term**               | **Definition / Usage**                                       | **Example**                                                        |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------ |
+| **Cluster / Group**    | A connected region of tiles of the same color.               | “Each move removes one cluster of identical tiles.”                |
+| **Collapse / Gravity** | Tiles fall down after a group is removed.                    | “We apply gravity after each removal to compact the board.”        |
+| **Left Shift**         | Empty columns move left after collapsing.                    | “Columns with all zeros are shifted left to maintain compactness.” |
+| **Reward Function**    | Determines points earned for a move, e.g. `len(cluster)**2`. | “Our reward function is quadratic in cluster size.”                |
+| **Terminal State**     | Board with no possible moves remaining.                      | “When no groups >1 remain, we’ve reached a terminal state.”        |
+
+---
+
+## 🧠 How You Might Explain It to Your Team
+
+Here’s an example of how you could summarize your logic using proper terminology:
+
+> “We represent each **game state** as a NumPy array in a **directed decision graph**. Each **edge** represents a **state transition** caused by a **move** — that is, removing a **cluster** of tiles.
+>
+> To avoid exploring the entire **state space**, we use a **heuristic function** that scores each successor state based on cluster sizes and remaining colors. We then perform a **beam search**, expanding only the top N states per level according to that heuristic.
+>
+> This effectively **prunes** low-potential branches and helps us approximate the **optimal solution path** without an exhaustive search.”
+
+---
+
+Would you like me to make you a **1-page glossary handout** (formatted neatly, like something you could share with your group) summarizing these key terms with short definitions and examples? It could fit into a Markdown or PDF file for quick reference.
