@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Compiled source files
 *.class
 *.o
@@ -67,12 +66,3 @@ package-lock.json
 *.iml
 *.db
 
-=======
-__pycache__
-venv/
-env/
-ENV/
-.venv/
-.DS_Store
-.vscode
->>>>>>> 5f7879c (Initial directory strucutre, no work due yet)
