@@ -107,61 +107,66 @@ def add_static_noise(image, num_dots=50, num_values=8, seed=0):
     
     return noisy_image
 
-# Generate and plot
-width=100
-height=100
+def createInput(width=100, height=100, seed=0):
+    # Generate and plot
+    worleyImage = worley_noise(width=width, height=height, seed=seed)
 
-worleyImage = worley_noise(width=width, height=height)
+    blur0 = worleyImage  # original (no blur)
+    blur1 = gaussian_blur(worleyImage, sigma=0.1)
+    blur2 = gaussian_blur(worleyImage, sigma=1.0)
+    blur3 = gaussian_blur(worleyImage, sigma=1.5)
 
-blur0 = worleyImage  # original (no blur)
-blur1 = gaussian_blur(worleyImage, sigma=0.1)
-blur2 = gaussian_blur(worleyImage, sigma=1.0)
-blur3 = gaussian_blur(worleyImage, sigma=1.5)
+    noise_map = perlin_field(width, height, scale=0.1, seed=seed)
+    # Normalize to [0, 1]
+    noise_map = (noise_map - noise_map.min()) / (noise_map.max() - noise_map.min())
 
-noise_map = perlin_field(width, height, scale=0.1)
-# Normalize to [0, 1]
-noise_map = (noise_map - noise_map.min()) / (noise_map.max() - noise_map.min())
+    # Map Perlin noise to [0, 1]
+    n = noise_map
 
-# Map Perlin noise to [0, 1]
-n = noise_map
+    composite = np.zeros_like(worleyImage, dtype=float)
 
-composite = np.zeros_like(worleyImage, dtype=float)
+    # Region 1: between blur1 and blur2
+    mask1 = n < 0.5
+    t1 = n / 0.5  # remap 0→0.5 to 0→1
+    composite[mask1] = (1 - t1[mask1]) * blur1[mask1] + t1[mask1] * blur2[mask1]
 
-# Region 1: between blur1 and blur2
-mask1 = n < 0.5
-t1 = n / 0.5  # remap 0→0.5 to 0→1
-composite[mask1] = (1 - t1[mask1]) * blur1[mask1] + t1[mask1] * blur2[mask1]
+    # Region 2: between blur2 and blur3
+    mask2 = n >= 0.5
+    t2 = (n[mask2] - 0.5) / 0.5  # remap 0.5→1 to 0→1
+    composite[mask2] = (1 - t2) * blur2[mask2] + t2 * blur3[mask2]
 
-# Region 2: between blur2 and blur3
-mask2 = n >= 0.5
-t2 = (n[mask2] - 0.5) / 0.5  # remap 0.5→1 to 0→1
-composite[mask2] = (1 - t2) * blur2[mask2] + t2 * blur3[mask2]
+    noised = add_static_noise(composite, num_dots=5000, seed=seed)
 
-noised = add_static_noise(composite, num_dots=5000)
+    quantized = np.rint(noised)  # round to nearest integer
+    final_image = np.clip(quantized, 1, 8).astype(int)
+    return final_image
 
-quantized = np.rint(noised)  # round to nearest integer
-final_image = np.clip(quantized, 1, 8).astype(int)
+def visualize(final_image):
+    plt.imshow(final_image, cmap='tab10', interpolation='nearest')
+    plt.title("Funny Noise (8 integer groups)")
+    plt.colorbar()
+    plt.show()
+if __name__ == "__main__":
+    final_image = createInput()
+    visualize(final_image)
 
-plt.imshow(final_image, cmap='tab10', interpolation='nearest')
-plt.title("Funny Noise (8 integer groups)")
-plt.colorbar()
-plt.show()
+    # Suppose `final_image` is your 2D integer array
+    filename = "noiseSubmition.txt"
 
-# Suppose `final_image` is your 2D integer array
-filename = "noiseSubmition.txt"
+    # Lines you want to prepend
+    header_lines = [
+        "{} {}".format(final_image.shape[1], final_image.shape[0])
+    ]
+    print(final_image.shape)
 
-# Lines you want to prepend
-header_lines = [
-    "{} {}".format(final_image.shape[1], final_image.shape[0])
-]
-print(final_image.shape)
+    # Open file and write header + array
+    with open(filename, "w") as f:
+        for line in header_lines:
+            f.write(line + "\n")
+        
+        # Now write the array, one row per line
+        for row in final_image:
+            # Convert row to space-separated integers
+            f.write("".join(map(str, row)) + "\n")
 
-# Open file and write header + array
-with open(filename, "w") as f:
-    for line in header_lines:
-        f.write(line + "\n")
-    
-    # Now write the array, one row per line
-    for row in final_image:
-        # Convert row to space-separated integers
-        f.write("".join(map(str, row)) + "\n")
+

@@ -31,42 +31,32 @@ def takeColor(input : np.ndarray, x : int, y : int):
     return count, takeSet
 
 def zeroOutMoves(input: np.ndarray, moveList: list):
-    print(moveList)
     for (x,y) in moveList:
         input[x][y] = 0
 
 def condense(arr : np.ndarray, colorSet: list):
     zeroOutMoves(arr, colorSet)
+    affected_cols = {y for _, y in colorSet}
+    affected_rows = {x for x, _ in colorSet}
+
     n_rows, n_cols = arr.shape
 
-    # Find non-empty columns
-    non_empty_cols = np.any(arr != 0, axis=0)
-    
-    # Count of non-empty columns
-    num_non_empty = np.sum(non_empty_cols)
-    
-    # Shift non-empty columns to the left
-    if num_non_empty > 0:
-        arr[:, :num_non_empty] = arr[:, non_empty_cols]
-    
-    # Fill remaining columns with zeros
-    if num_non_empty < n_cols:
-        arr[:, num_non_empty:] = 0
-        
-    for j in range(n_cols):
-        col = arr[:, j]
-        non_zero = col[col != 0]
-        num_zeros = n_rows - len(non_zero)
-        # Fill top with zeros
-        col[:num_zeros] = 0
-        # Fill bottom with non-zero values
-        col[num_zeros:] = non_zero
+    for col in affected_cols:
+        # Extract the column
+        column = arr[:, col]
+        # Get all non-zero elements
+        nonzeros = column[column != 0]
+        # Fill the bottom part of the column with non-zeros
+        arr[:, col] = 0
+        arr[n_rows - len(nonzeros):, col] = nonzeros
 
+    for row in affected_rows:
+        line = arr[row, :]
+        nonzeros = line[line != 0]
+        arr[row, :] = 0
+        arr[row, :len(nonzeros)] = nonzeros
 
-
-
-if __name__ == "__main__":
-    fname = "input.txt"
+def readInput(fname : str):
     with open(fname, "r") as inputFile:
         n, m = map(int, inputFile.readline().strip().split())
         colors = np.zeros((n,m), dtype=int)
@@ -74,9 +64,9 @@ if __name__ == "__main__":
             line = list(inputFile.readline())
             for j in range(m):
                 colors[i][j] = int(line[j])
-        print(colors)
-    
-    oname = "outputIn.txt"
+    return colors
+
+def readOutput(fname : str):
     with open(oname, "r") as inputFile:
         scorePred = int(inputFile.readline())
         moves = int(inputFile.readline())
@@ -90,6 +80,15 @@ if __name__ == "__main__":
                 lineTupple = line[i+2]
                 takeList.append(list(map(int, lineTupple.split(','))))
             moveList.append((color, pairs, takeList))
+    return moveList, scorePred
+if __name__ == "__main__":
+    fname = "input.txt"
+    colors = readInput(fname)
+    print(colors)
+    
+    # Create Output reader function, unsure what parts will need
+    oname = "outputIn.txt"
+    moveList, scorePred = readOutput(oname)
 
     #moveList Structure, [move][color, number of tiles, list][grid position in list][x, y]
     score = 0
@@ -118,7 +117,10 @@ if __name__ == "__main__":
             print(takeSet)
             break
         score += (count - 1)**2
+        print(moveList)
         condense(colors, takeSet)
         print(colors)
+    if score != scorePred:
+        print("INVALID SCORE!!")
     
     
