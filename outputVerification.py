@@ -12,22 +12,31 @@ def takeColor(input : np.ndarray, x : int, y : int):
         return 0
     
     stack = [(realX, realY)]
+    takeSet = set()
+    visited = set()
     count = 0
     while stack:
         cx, cy = stack.pop()
+        visited.add((cx, cy))
         if input[cx][cy] == target:
-            input[cx][cy] = 0
+            takeSet.add((cx, cy))
             count += 1
 
         # check cardinal neighbors
         for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
             nx, ny = cx + dx, cy + dy
-            if 0 <= nx < shape[0] and 0 <= ny < shape[1] and input[nx, ny] == target:
+            if 0 <= nx < shape[0] and 0 <= ny < shape[1] and input[nx, ny] == target and (nx, ny) not in visited:
                 stack.append((nx, ny))
 
-    return count
+    return count, takeSet
 
-def condense(arr : np.ndarray):
+def zeroOutMoves(input: np.ndarray, moveList: list):
+    print(moveList)
+    for (x,y) in moveList:
+        input[x][y] = 0
+
+def condense(arr : np.ndarray, colorSet: list):
+    zeroOutMoves(arr, colorSet)
     n_rows, n_cols = arr.shape
 
     # Find non-empty columns
@@ -52,15 +61,6 @@ def condense(arr : np.ndarray):
         col[:num_zeros] = 0
         # Fill bottom with non-zero values
         col[num_zeros:] = non_zero
-    
-
-def zeroOutMoves(input: np.ndarray, moveList: list):
-    print(moveList)
-    shape = input.shape
-    for (x,y) in moveList:
-        realX = int(shape[0]) - x
-        realY = y - 1
-        input[realX][realY] = 0
 
 
 
@@ -92,20 +92,33 @@ if __name__ == "__main__":
             moveList.append((color, pairs, takeList))
 
     #moveList Structure, [move][color, number of tiles, list][grid position in list][x, y]
+    score = 0
     for move in moveList:
-        print(move)
         takeX = move[2][0][0]
         takeY = move[2][0][1]
         print(takeX, takeY)
-        simColors = colors.copy()
-        zeroOutMoves(simColors, move[2])
-        condense(simColors)
-        count = takeColor(colors, takeX, takeY)
-        condense(colors)
+        shape = colors.shape
+        realX = int(shape[0]) - takeX
+        realY = takeY - 1
+        print(move[0])
+        print(realX, realY)
+        if colors[realX][realY] != move[0]:
+            print("INVALID MOVE!! Wrong Color")
+            print(move)
+            break
+        count, takeSet = takeColor(colors, takeX, takeY)
+        checkSet = set((int(shape[0]) - x, y - 1) for x, y in move[2])
+        if count != move[1]:
+            print("INVALID MOVE!! Wrong count")
+            print(move)
+            break
+        if takeSet != checkSet:
+            print("INVALID MOVE!! Wrong take set")
+            print(move)
+            print(takeSet)
+            break
+        score += (count - 1)**2
+        condense(colors, takeSet)
         print(colors)
-        print(count)
-        print(simColors)
-        # If count = 0, invalid move
-        # IF simColors != colors, invalid move
     
     

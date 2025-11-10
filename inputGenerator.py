@@ -154,6 +154,7 @@ filename = "noiseSubmition.txt"
 header_lines = [
     "{} {}".format(final_image.shape[1], final_image.shape[0])
 ]
+print(final_image.shape)
 
 # Open file and write header + array
 with open(filename, "w") as f:
@@ -163,4 +164,4 @@ with open(filename, "w") as f:
     # Now write the array, one row per line
     for row in final_image:
         # Convert row to space-separated integers
-        f.write(" ".join(map(str, row)) + "\n")
+        f.write("".join(map(str, row)) + "\n")
