@@ -58,7 +58,7 @@ def generateSuccessors(state: np.ndarray, numSuccessors: int):
         successorState = state.copy()
         count, takeSet = takeColor(successorState, x, y)
         condense(successorState, takeSet)
-        successors.append((count, successorState))
+        successors.append((count, successorState, x, y))
     return successors
 
 if __name__ == "__main__":
@@ -67,5 +67,5 @@ if __name__ == "__main__":
     print("Creating and testing input of size: ", width, height)
     colors = createInput(width, height, random.randint(0,10))
     successorStates = generateSuccessors(colors, 100)
-    for count, state in successorStates:
-        print(count, heuristic(state))
+    for count, state, x, y in successorStates:
+        print(x, y, count, heuristic(state))
