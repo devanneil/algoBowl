@@ -15,7 +15,7 @@ if __name__ == "__main__":
     print(inputArray)
     startTime = time.perf_counter()
     print("Taking move: ", move)
-    count, takeSet = takeColor(inputArray, move[0], move[1])
+    count, takeSet, color = takeColor(inputArray, move[0], move[1])
     print(takeSet)
     takeTime = time.perf_counter()
     condense(inputArray, takeSet)

@@ -1,0 +1,20 @@
+Backtracking from node graph
+    Each node stores a "parent" field, and each edge stores all the information for the move
+Test on everyone's computer
+    Once backtracking is working we all need to test it to make sure we can all do outut verifications
+Output verifying
+    We can use our existing output verification script, but I cannot guaruntee our output is any good
+    I'll get a bunch of outputs saved on my desktop, which is fairly fast
+    We can also change the size of our input
+Tune max depth and max children
+    These can be changed in the function call
+    Max depth is the same as max moves
+    Max children controls how many children of each state we evaluate
+    I did accidentally get 11,000
+Parallelize tree search
+    (Devan) I will take care of this
+Optimize Heuristics
+    (Devan) I will take care of this too
+main.py
+    Take a file in as input, make an output, verify our output
+    We need to test against small outputs and odd outputs to be sure our code won't crash and burn

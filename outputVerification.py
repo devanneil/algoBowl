@@ -9,7 +9,7 @@ def takeColor(input : np.ndarray, x : int, y : int):
     realY = y - 1
     target = input[realX][realY]
     if target == 0:
-        return 0
+        return (0, None, 0)
     
     stack = [(realX, realY)]
     takeSet = set()
@@ -28,7 +28,7 @@ def takeColor(input : np.ndarray, x : int, y : int):
             if 0 <= nx < shape[0] and 0 <= ny < shape[1] and input[nx, ny] == target and (nx, ny) not in visited:
                 stack.append((nx, ny))
 
-    return count, takeSet
+    return count, takeSet, target
 
 def zeroOutMoves(input: np.ndarray, moveList: list):
     for (x,y) in moveList:
@@ -105,7 +105,7 @@ if __name__ == "__main__":
             print("INVALID MOVE!! Wrong Color")
             print(move)
             break
-        count, takeSet = takeColor(colors, takeX, takeY)
+        count, takeSet, colors = takeColor(colors, takeX, takeY)
         checkSet = set((int(shape[0]) - x, y - 1) for x, y in move[2])
         if count != move[1]:
             print("INVALID MOVE!! Wrong count")
