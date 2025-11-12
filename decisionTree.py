@@ -2,6 +2,12 @@ import numpy as np
 import networkx as nx
 from models import createInput
 from decisionLogic import heuristic, generateSuccessors
+import time
+import multiprocessing as mp
+import hashlib
+
+def state_hash(state: np.ndarray):
+    return hashlib.sha256(state.astype(np.int8).tobytes()).hexdigest()
 
 '''
 decisionTree will make fucniton calls to decisionLogic and will handle the networkX graph
@@ -9,42 +15,83 @@ decisionTree will make fucniton calls to decisionLogic and will handle the netwo
 finalStates = set()
 bestState = 0
 bestScore = 0
-def buildTree(graph : nx.Graph, rootState : np.ndarray, prevScore : int, maxDepth : int, maxChildren : int):
-    print("Layer: ", maxDepth)
+def evaluate_successor(args):
+    """Runs heuristic + scoring for a successor (for multiprocessing)."""
+    state, count, prevScore, x, y, color, takeSet = args
+    score = (count - 1)**2 + prevScore
+    heuristicValue = heuristic(state)
+    index = state_hash(state)
+
+    return (index, state, count, score, heuristicValue, x, y, color, takeSet)
+
+def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: int, maxChildren: int, pool):
+    print("Layer:", maxDepth)
     global bestScore, bestState, finalStates
-    successorStates = generateSuccessors(rootState, 100)
+
+    successorStates = generateSuccessors(rootState, maxChildren)
+    rootIndex = state_hash(rootState)
+
+    # Prepare arguments for multiprocessing
+    task_args = [(state, count, prevScore, x, y, color, takeSet)
+                 for count, state, x, y, color, takeSet in successorStates]
+
+    # Use a process pool to evaluate successors in parallel
+    results = pool.map(evaluate_successor, task_args)
+
     children = []
-    rootIndex = rootState.tobytes()
-    for count, state, x, y, color in successorStates:
-        index = state.tobytes()
-        score = (count - 1)**2 + prevScore
-        heuristicValue = 0
+    for index, state, count, score, heuristicValue, x, y, color, takeSet in results:
         if index in graph.nodes:
             if graph.nodes[index]["score"] < score:
                 graph.nodes[index]["score"] = score
                 graph.remove_edge(graph.nodes[index]["parent"], index)
                 heuristicValue = graph.nodes[index]["heuristicValue"]
-        else:
-            heuristicValue = heuristic(state)
-        finish = False
-        if(maxDepth == 0):
-            finish = True
+            continue
+
+        finish = (maxDepth == 0)
+        if finish:
             finalStates.add(index)
         if score > bestScore:
             bestScore = score
             bestState = state
-            print("New best: ", bestScore)
-        graph.add_node(index, state=state, score=score, heuristicValue = heuristicValue, finish=finish, parent = rootIndex)
-        graph.add_edge(rootIndex, index, move = (x,y), count = count, color = color)
+            print("New best:", bestScore)
+
+        graph.add_node(index, state=state, score=score, count = count, heuristicValue=heuristicValue, finish=finish, parent=rootIndex)
+        graph.add_edge(rootIndex, index, move=(x, y), count=count, color=color, colorSet=takeSet)
         if not finish:
             children.append((state, heuristicValue, score))
+
+    # Recurse on top children
     sorted_children = sorted(children, key=lambda x: x[1], reverse=True)
     next_children = sorted_children[:maxChildren]
     for state, _, score in next_children:
-        buildTree(graph, state, score, maxDepth-1, maxChildren)
+        buildTree(graph, state, score, maxDepth - 1, maxChildren, pool)
+
+def traceBack(graph: nx.Graph, goal: np.ndarray):
+    current = state_hash(goal)
+    while current is not None:
+        parent = graph.nodes[current]["parent"]
+        if parent is None:
+            break
+        edge = graph.edges[(parent, current)]
+        print(f"{edge['color']} {edge['count']} {edge['move'][0]} {edge['move'][1]}")
+        current = parent
+        
+
 if __name__ == "__main__":
     inputArray = createInput(100,100)
     decisionTree = nx.DiGraph()
-    decisionTree.add_node(inputArray.tobytes(), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
-    buildTree(graph=decisionTree, rootState=inputArray, prevScore=0, maxDepth=100, maxChildren=10)
+    startTime = time.perf_counter()
+    decisionTree.add_node((state_hash(inputArray)), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        buildTree(graph=decisionTree, rootState=inputArray, prevScore=0, maxDepth=5, maxChildren=3, pool=pool)
+    finishTime = time.perf_counter()
     print(decisionTree)
+    print(finishTime - startTime)
+    print(bestScore)
+    print(bestState)
+    bestIndex = (state_hash(bestState))
+    print(decisionTree.nodes[bestIndex]["score"])
+    #print(bestIndex)
+    
+
+    traceBack(decisionTree, bestState)

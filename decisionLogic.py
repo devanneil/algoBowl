@@ -5,7 +5,25 @@ import random
 decisionLogic will handle utility functions 
 '''
 # Heuristic functions to guess at the game score to decide what decisions to make
+import numpy as np
 
+def conv2d_numpy(arr, kernel):
+    kh, kw = kernel.shape
+    ah, aw = arr.shape
+    pad_h, pad_w = kh // 2, kw // 2
+
+    # Zero-pad
+    padded = np.pad(arr, ((pad_h, pad_h), (pad_w, pad_w)), mode='constant')
+
+    # Output array
+    out = np.zeros_like(arr, dtype=float)
+
+    # Slide window
+    for i in range(ah):
+        for j in range(aw):
+            region = padded[i:i+kh, j:j+kw]
+            out[i, j] = np.sum(region * kernel)
+    return out
 # Score based on large groups
 def groupHeuristic(state : np.ndarray):
     visited = np.zeros_like(state, dtype=bool)
@@ -33,6 +51,18 @@ def groupHeuristic(state : np.ndarray):
 
     return total_score
 
+def groupHeuristicConv(state: np.ndarray):
+    from scipy.signal import convolve2d
+    kernel = np.ones((3, 3), dtype=float)
+    colors = np.unique(state)
+    colors = colors[colors != 0]
+    # Stack masks for all colors: shape (num_colors, H, W)
+    masks = np.stack([(state == c).astype(float) for c in colors])
+    # Apply convolution for each mask
+    convs = np.array([convolve2d(m, kernel, mode='same', boundary='fill', fillvalue=0) for m in masks])
+    # Compute score per color
+    return np.sum(convs * masks)
+
 # Score based on color sums
 def colorHeuristic(state : np.ndarray):
     return None
@@ -42,7 +72,7 @@ def sizeHeuristic(state : np.ndarray):
     return None
 
 def heuristic(state: np.ndarray):
-    return groupHeuristic(state)
+    return groupHeuristicConv(state)
 
 # Builds successor states based on current state and returns the children states
 def generateSuccessors(state: np.ndarray, numSuccessors: int):
@@ -59,7 +89,7 @@ def generateSuccessors(state: np.ndarray, numSuccessors: int):
         count, takeSet, color = takeColor(successorState, x, y)
         if count != 0:
             condense(successorState, takeSet)
-            successors.append((count, successorState, x, y, color))
+            successors.append((count, successorState, x, y, color, takeSet))
     return successors
 
 if __name__ == "__main__":
