@@ -81,15 +81,8 @@ def readOutput(fname : str):
                 takeList.append(list(map(int, lineTupple.split(','))))
             moveList.append((color, pairs, takeList))
     return moveList, scorePred
-if __name__ == "__main__":
-    fname = "input.txt"
-    colors = readInput(fname)
-    print(colors)
-    
-    # Create Output reader function, unsure what parts will need
-    oname = "outputIn.txt"
-    moveList, scorePred = readOutput(oname)
 
+def fullOutputCheck(movelist: list, scorePred: int, input: np.ndarray):
     #moveList Structure, [move][color, number of tiles, list][grid position in list][x, y]
     score = 0
     for move in moveList:
@@ -105,13 +98,13 @@ if __name__ == "__main__":
             print("INVALID MOVE!! Wrong Color")
             print(move)
             break
-        count, takeSet, colors = takeColor(colors, takeX, takeY)
+        count, takeSet, color = takeColor(colors, takeX, takeY)
         checkSet = set((int(shape[0]) - x, y - 1) for x, y in move[2])
         if count != move[1]:
             print("INVALID MOVE!! Wrong count")
             print(move)
             break
-        if takeSet != checkSet:
+        if (realX, realY) not in checkSet:
             print("INVALID MOVE!! Wrong take set")
             print(move)
             print(takeSet)
@@ -122,5 +115,17 @@ if __name__ == "__main__":
         print(colors)
     if score != scorePred:
         print("INVALID SCORE!!")
+
+if __name__ == "__main__":
+    fname = "input.txt"
+    colors = readInput(fname)
+    print(colors)
+    
+    # Create Output reader function, unsure what parts will need
+    oname = "outputIn.txt"
+    moveList, scorePred = readOutput(oname)
+
+    fullOutputCheck(moveList, scorePred, colors)
+
     
     
