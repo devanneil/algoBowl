@@ -66,55 +66,50 @@ def readInput(fname : str):
                 colors[i][j] = int(line[j])
     return colors
 
-def readOutput(fname : str):
+def readOutput(oname : str):
     with open(oname, "r") as inputFile:
         scorePred = int(inputFile.readline())
         moves = int(inputFile.readline())
         moveList = []
         for i in range(moves):
-            line = inputFile.readline().split()
-            color = int(line[0])
-            pairs = int(line[1])
-            takeList = []
-            for i in range(pairs):
-                lineTupple = line[i+2]
-                takeList.append(list(map(int, lineTupple.split(','))))
-            moveList.append((color, pairs, takeList))
+            color, pairs, x, y = map(int, inputFile.readline().split())
+            moveList.append((color, pairs, x, y))
+            
     return moveList, scorePred
 
-def fullOutputCheck(movelist: list, scorePred: int, input: np.ndarray):
-    #moveList Structure, [move][color, number of tiles, list][grid position in list][x, y]
+def fullOutputCheck(moveList: list, scorePred: int, colorsArray: np.ndarray):
+    #moveList Structure, (color, count, takeX, takeY)
     score = 0
     for move in moveList:
-        takeX = move[2][0][0]
-        takeY = move[2][0][1]
+        takeX = move[2]
+        takeY = move[3]
         print(takeX, takeY)
-        shape = colors.shape
+        shape = colorsArray.shape
         realX = int(shape[0]) - takeX
         realY = takeY - 1
         print(move[0])
         print(realX, realY)
-        if colors[realX][realY] != move[0]:
+        if colorsArray[realX][realY] != move[0]:
             print("INVALID MOVE!! Wrong Color")
             print(move)
+            print(colorsArray[realX][realY])
             break
-        count, takeSet, color = takeColor(colors, takeX, takeY)
-        checkSet = set((int(shape[0]) - x, y - 1) for x, y in move[2])
+        count, takeSet, color = takeColor(colorsArray, takeX, takeY)
         if count != move[1]:
             print("INVALID MOVE!! Wrong count")
             print(move)
+            print(count)
             break
-        if (realX, realY) not in checkSet:
+        if (realX, realY) not in takeSet:
             print("INVALID MOVE!! Wrong take set")
             print(move)
             print(takeSet)
             break
         score += (count - 1)**2
-        print(moveList)
-        condense(colors, takeSet)
-        print(colors)
+        condense(colorsArray, takeSet)
     if score != scorePred:
         print("INVALID SCORE!!")
+        print(score)
 
 if __name__ == "__main__":
     fname = "input.txt"

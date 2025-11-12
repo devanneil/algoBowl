@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 from models import createInput
 from decisionLogic import heuristic, generateSuccessors
+from outputVerification import fullOutputCheck
 import time
 import multiprocessing as mp
 import hashlib
@@ -68,13 +69,20 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
 
 def traceBack(graph: nx.Graph, goal: np.ndarray):
     current = state_hash(goal)
+    outputList = []
+    count = 0
     while current is not None:
         parent = graph.nodes[current]["parent"]
         if parent is None:
             break
         edge = graph.edges[(parent, current)]
-        print(f"{edge['color']} {edge['count']} {edge['move'][0]} {edge['move'][1]}")
+        takeX = (edge['move'][0])
+        takeY = edge['move'][1]
+        outputList.append((int(edge["color"]), edge["count"], takeX, takeY))
         current = parent
+        count += 1
+    outputList.reverse()
+    return outputList, count
         
 
 if __name__ == "__main__":
@@ -94,4 +102,12 @@ if __name__ == "__main__":
     #print(bestIndex)
     
 
-    traceBack(decisionTree, bestState)
+    outputList, count = traceBack(decisionTree, bestState)
+    print(count)
+    for line in outputList:
+        print(line[0], line[1], line[2], line[3])
+
+
+    print(inputArray[inputArray.shape[0] - outputList[0][2]][[outputList[0][3] - 1]])
+    fullOutputCheck(outputList, bestScore, inputArray)
+    
