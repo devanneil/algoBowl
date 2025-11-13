@@ -7,6 +7,7 @@ import glob
 import os
 import re
 from models import readInput, readOutput
+import sys
 '''
 Main will be where we handle inputting the problem, calling the search function, and printing the final result
 '''
@@ -47,7 +48,9 @@ def fileOutputCheck(moveList: list, scorePred: int, colorsArray: np.ndarray, fna
 
 if __name__ == "__main__":
     folder_path = "all_inputs/inputs"
-    files = glob.glob(os.path.join(folder_path, "input_group*.txt"))
+    files = sys.argv[1:]
+    if len(files) == 0:
+        print("Must provide a file!")
 
     for path in files:
         decisionTree.bestState = None

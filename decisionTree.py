@@ -41,6 +41,8 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
 
     children = []
     for index, state, count, score, heuristicValue, x, y, color, takeSet in results:
+        if count <= 1:
+            continue
         if score + heuristicValue <= alpha:
             continue
         if index in graph.nodes:
