@@ -14,7 +14,7 @@ def state_hash(state: np.ndarray):
 decisionTree will make fucniton calls to decisionLogic and will handle the networkX graph
 '''
 finalStates = set()
-bestState = 0
+bestState = None
 bestScore = 0
 def evaluate_successor(args):
     """Runs heuristic + scoring for a successor (for multiprocessing)."""
@@ -87,10 +87,11 @@ def traceBack(graph: nx.Graph, goal: np.ndarray):
     outputList.reverse()
     return outputList, count
         
-def expandAndSearch(decisionTree: nx.graph, inputArray: np.ndarray, maxDepth: int, maxChildren: int):
+def expandAndSearch(decisionTree: nx.graph, inputArray: np.ndarray, maxDepth: int, maxChildren: int, stateScore = 0):
     decisionTree.add_node((state_hash(inputArray)), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
     with mp.Pool(processes=mp.cpu_count()) as pool:
-        buildTree(graph=decisionTree, rootState=inputArray, prevScore=0, maxDepth=maxDepth, maxChildren=maxChildren, pool=pool)
+        buildTree(graph=decisionTree, rootState=inputArray, prevScore=stateScore, maxDepth=maxDepth, maxChildren=maxChildren, pool=pool)
+    return bestScore, bestState
     
 if __name__ == "__main__":
     inputArray = createInput(100,100)
