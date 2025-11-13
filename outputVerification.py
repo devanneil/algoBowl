@@ -59,7 +59,7 @@ def condense(arr : np.ndarray, colorSet: list):
 def readInput(fname : str):
     with open(fname, "r") as inputFile:
         n, m = map(int, inputFile.readline().strip().split())
-        colors = np.zeros((n,m), dtype=int)
+        colors = np.zeros((n,m), dtype=np.uint8)
         for i in range(n):
             line = list(inputFile.readline())
             for j in range(m):

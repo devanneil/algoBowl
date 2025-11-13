@@ -25,8 +25,8 @@ def evaluate_successor(args):
 
     return (index, state, count, score, heuristicValue, x, y, color, takeSet)
 
-def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: int, maxChildren: int, pool):
-    print("Layer:", maxDepth)
+def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: int, maxChildren: int, pool, alpha=0):
+    #print("Layer:", maxDepth)
     global bestScore, bestState, finalStates
 
     successorStates = generateSuccessors(rootState, maxChildren)
@@ -41,6 +41,8 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
 
     children = []
     for index, state, count, score, heuristicValue, x, y, color, takeSet in results:
+        if score + heuristicValue <= alpha:
+            continue
         if index in graph.nodes:
             if graph.nodes[index]["score"] < score:
                 graph.nodes[index]["score"] = score
@@ -54,6 +56,7 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
         if score > bestScore:
             bestScore = score
             bestState = state
+            alpha = bestScore
             print("New best:", bestScore)
 
         graph.add_node(index, state=state, score=score, count = count, heuristicValue=heuristicValue, finish=finish, parent=rootIndex)
@@ -65,7 +68,7 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
     sorted_children = sorted(children, key=lambda x: x[1], reverse=True)
     next_children = sorted_children[:maxChildren]
     for state, _, score in next_children:
-        buildTree(graph, state, score, maxDepth - 1, maxChildren, pool)
+        buildTree(graph, state, score, maxDepth - 1, maxChildren, pool, alpha)
 
 def traceBack(graph: nx.Graph, goal: np.ndarray):
     current = state_hash(goal)
@@ -84,14 +87,16 @@ def traceBack(graph: nx.Graph, goal: np.ndarray):
     outputList.reverse()
     return outputList, count
         
-
+def expandAndSearch(decisionTree: nx.graph, inputArray: np.ndarray, maxDepth: int, maxChildren: int):
+    decisionTree.add_node((state_hash(inputArray)), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
+    with mp.Pool(processes=mp.cpu_count()) as pool:
+        buildTree(graph=decisionTree, rootState=inputArray, prevScore=0, maxDepth=maxDepth, maxChildren=maxChildren, pool=pool)
+    
 if __name__ == "__main__":
     inputArray = createInput(100,100)
     decisionTree = nx.DiGraph()
     startTime = time.perf_counter()
-    decisionTree.add_node((state_hash(inputArray)), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
-    with mp.Pool(processes=mp.cpu_count()) as pool:
-        buildTree(graph=decisionTree, rootState=inputArray, prevScore=0, maxDepth=5, maxChildren=3, pool=pool)
+    expandAndSearch(decisionTree, inputArray, 10, 5)
     finishTime = time.perf_counter()
     print(decisionTree)
     print(finishTime - startTime)

@@ -1,6 +1,7 @@
 from models import takeColor, zeroOutMoves, condense, createInput
 import numpy as np
 import random
+from scipy.signal import convolve2d
 '''
 decisionLogic will handle utility functions 
 '''
@@ -52,12 +53,11 @@ def groupHeuristic(state : np.ndarray):
     return total_score
 
 def groupHeuristicConv(state: np.ndarray):
-    from scipy.signal import convolve2d
-    kernel = np.ones((3, 3), dtype=float)
+    kernel = np.ones((3, 3), dtype=np.uint8)
     colors = np.unique(state)
     colors = colors[colors != 0]
     # Stack masks for all colors: shape (num_colors, H, W)
-    masks = np.stack([(state == c).astype(float) for c in colors])
+    masks = np.stack([(state == c).astype(np.uint8) for c in colors])
     # Apply convolution for each mask
     convs = np.array([convolve2d(m, kernel, mode='same', boundary='fill', fillvalue=0) for m in masks])
     # Compute score per color
