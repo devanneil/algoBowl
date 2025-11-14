@@ -64,12 +64,13 @@ if __name__ == "__main__":
         print("Evaluating: ", group_number)
         #Evaluate inputs here
         inputArray = readInput(path)
+        print(inputArray)
         outputList = []
         count = 0
         currentArray = inputArray
         groupState = None
         groupBest = 0
-        for i in range(int(inputArray.shape[0] / 5)):
+        for i in range(int(inputArray.shape[0])):
             evalGraph = nx.DiGraph()
             groupBest, groupState = expandAndSearch(evalGraph, currentArray, 5, 5,  groupBest)
             results = traceBack(evalGraph, groupState)
@@ -85,6 +86,7 @@ if __name__ == "__main__":
 
         filePath = os.path.join(output_dir, oname)
         with open(filePath, "w") as outputFile:
+            print(groupBest, count)
             outputFile.write(f"{groupBest}\n")
             outputFile.write(f"{count}\n")
             for line in outputList:

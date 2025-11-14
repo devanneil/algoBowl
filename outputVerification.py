@@ -29,7 +29,7 @@ def takeColor(input : np.ndarray, x : int, y : int):
                 stack.append((nx, ny))
                 visited.add((nx, ny))
 
-    return count, takeSet, target
+    return len(takeSet), takeSet, target
 
 def zeroOutMoves(input: np.ndarray, moveList: list):
     for (x,y) in moveList:
@@ -61,6 +61,7 @@ def readInput(fname : str):
     with open(fname, "r") as inputFile:
         n, m = map(int, inputFile.readline().strip().split())
         colors = np.zeros((n,m), dtype=np.uint8)
+        print(colors.shape)
         for i in range(n):
             line = list(inputFile.readline())
             for j in range(m):
