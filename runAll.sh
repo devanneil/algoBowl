@@ -2,7 +2,7 @@
 
 SCRIPT_DIR="$(dirname "$0")"
 INPUT_DIR="$SCRIPT_DIR/all_inputs/inputs"
-MAX_JOBS=6   # <= IMPORTANT: reduce this number
+MAX_JOBS=8   # <= IMPORTANT: reduce this number
 export OPENBLAS_NUM_THREADS=4
 export MKL_NUM_THREADS=10
 export OMP_NUM_THREADS=10
