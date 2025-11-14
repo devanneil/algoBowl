@@ -96,7 +96,7 @@ def expandAndSearch(decisionTree: nx.graph, inputArray: np.ndarray, maxDepth: in
     return bestScore, bestState
     
 if __name__ == "__main__":
-    inputArray = createInput(100,100)
+    inputArray = createInput(10,10)
     decisionTree = nx.DiGraph()
     startTime = time.perf_counter()
     expandAndSearch(decisionTree, inputArray, 10, 5)

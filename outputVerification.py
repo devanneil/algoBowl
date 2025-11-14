@@ -15,9 +15,9 @@ def takeColor(input : np.ndarray, x : int, y : int):
     takeSet = set()
     visited = set()
     count = 0
+    visited.add((realX, realY))
     while stack:
         cx, cy = stack.pop()
-        visited.add((cx, cy))
         if input[cx][cy] == target:
             takeSet.add((cx, cy))
             count += 1
@@ -27,6 +27,7 @@ def takeColor(input : np.ndarray, x : int, y : int):
             nx, ny = cx + dx, cy + dy
             if 0 <= nx < shape[0] and 0 <= ny < shape[1] and input[nx, ny] == target and (nx, ny) not in visited:
                 stack.append((nx, ny))
+                visited.add((nx, ny))
 
     return count, takeSet, target
 
@@ -50,11 +51,11 @@ def condense(arr : np.ndarray, colorSet: list):
         arr[:, col] = 0
         arr[n_rows - len(nonzeros):, col] = nonzeros
 
-    for row in affected_rows:
-        line = arr[row, :]
-        nonzeros = line[line != 0]
-        arr[row, :] = 0
-        arr[row, :len(nonzeros)] = nonzeros
+    non_empty_cols = [c for c in range(n_cols) if np.any(arr[:, c] != 0)]
+    new_arr = np.zeros_like(arr)
+    for i, c in enumerate(non_empty_cols):
+        new_arr[:, i] = arr[:, c]
+    arr[:, :] = new_arr
 
 def readInput(fname : str):
     with open(fname, "r") as inputFile:
@@ -99,6 +100,7 @@ def fullOutputCheck(moveList: list, scorePred: int, colorsArray: np.ndarray):
             print("INVALID MOVE!! Wrong count")
             print(move)
             print(count)
+            print(len(takeSet))
             break
         if (realX, realY) not in takeSet:
             print("INVALID MOVE!! Wrong take set")
