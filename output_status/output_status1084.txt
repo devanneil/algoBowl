@@ -295,30 +295,3 @@
 {takeX}, {takeY}
 {move[0]}
 {realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}
-{takeX}, {takeY}
-{move[0]}
-{realX}, {realY}

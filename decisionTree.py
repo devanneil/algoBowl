@@ -29,7 +29,7 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
     #print("Layer:", maxDepth)
     global bestScore, bestState, finalStates
 
-    successorStates = generateSuccessors(rootState, maxChildren)
+    successorStates = generateSuccessors(rootState, 4*maxChildren)
     rootIndex = state_hash(rootState)
 
     # Prepare arguments for multiprocessing
@@ -65,7 +65,7 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
         graph.add_edge(rootIndex, index, move=(x, y), count=count, color=color, colorSet=takeSet)
         if not finish:
             children.append((state, heuristicValue, score))
-
+    if len(children) == 0: return
     # Recurse on top children
     sorted_children = sorted(children, key=lambda x: x[1], reverse=True)
     next_children = sorted_children[:maxChildren]
@@ -73,6 +73,8 @@ def buildTree(graph: nx.Graph, rootState: np.ndarray, prevScore: int, maxDepth: 
         buildTree(graph, state, score, maxDepth - 1, maxChildren, pool, alpha)
 
 def traceBack(graph: nx.Graph, goal: np.ndarray):
+    if goal is None:
+        return [], 0
     current = state_hash(goal)
     outputList = []
     count = 0
@@ -90,8 +92,10 @@ def traceBack(graph: nx.Graph, goal: np.ndarray):
     return outputList, count
         
 def expandAndSearch(decisionTree: nx.graph, inputArray: np.ndarray, maxDepth: int, maxChildren: int, stateScore = 0):
+    if inputArray is None:
+        return 0, None
     decisionTree.add_node((state_hash(inputArray)), state=inputArray, score=0, heuristicValue = 0, finish=False, parent=None)
-    with mp.Pool(processes=mp.cpu_count()) as pool:
+    with mp.Pool(processes=min(mp.cpu_count(), 4)) as pool:
         buildTree(graph=decisionTree, rootState=inputArray, prevScore=stateScore, maxDepth=maxDepth, maxChildren=maxChildren, pool=pool)
     return bestScore, bestState
     
